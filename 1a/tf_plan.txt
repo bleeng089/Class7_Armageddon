@@ -1,0 +1,795 @@
+Maria:12_29_25$ terraform plan
+data.aws_iam_policy_document.ec2_assume_role: Reading...
+data.aws_availability_zones.available: Reading...
+data.aws_ami.amazon_linux_2023: Reading...
+data.aws_iam_policy_document.ec2_assume_role: Read complete after 0s [id=1256122602]
+data.aws_availability_zones.available: Read complete after 1s [id=us-east-1]
+data.aws_ami.amazon_linux_2023: Read complete after 1s [id=ami-068c0051b15cdb816]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # data.aws_iam_policy_document.secrets_access will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "secrets_access" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "secretsmanager:GetSecretValue",
+            ]
+          + effect    = "Allow"
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "GetDBSecret"
+        }
+    }
+
+  # aws_db_instance.mysql will be created
+  + resource "aws_db_instance" "mysql" {
+      + address                               = (known after apply)
+      + allocated_storage                     = 20
+      + apply_immediately                     = false
+      + arn                                   = (known after apply)
+      + auto_minor_version_upgrade            = true
+      + availability_zone                     = (known after apply)
+      + backup_retention_period               = 0
+      + backup_target                         = (known after apply)
+      + backup_window                         = (known after apply)
+      + ca_cert_identifier                    = (known after apply)
+      + character_set_name                    = (known after apply)
+      + copy_tags_to_snapshot                 = false
+      + database_insights_mode                = (known after apply)
+      + db_name                               = "notesdb"
+      + db_subnet_group_name                  = "ec2-rds-notes-lab-db-subnet-group"
+      + dedicated_log_volume                  = false
+      + delete_automated_backups              = true
+      + deletion_protection                   = false
+      + domain_fqdn                           = (known after apply)
+      + endpoint                              = (known after apply)
+      + engine                                = "mysql"
+      + engine_lifecycle_support              = (known after apply)
+      + engine_version                        = "8.0"
+      + engine_version_actual                 = (known after apply)
+      + hosted_zone_id                        = (known after apply)
+      + id                                    = (known after apply)
+      + identifier                            = "ec2-rds-notes-lab-mysql"
+      + identifier_prefix                     = (known after apply)
+      + instance_class                        = "db.t3.micro"
+      + iops                                  = (known after apply)
+      + kms_key_id                            = (known after apply)
+      + latest_restorable_time                = (known after apply)
+      + license_model                         = (known after apply)
+      + listener_endpoint                     = (known after apply)
+      + maintenance_window                    = (known after apply)
+      + master_user_secret                    = (known after apply)
+      + master_user_secret_kms_key_id         = (known after apply)
+      + monitoring_interval                   = 0
+      + monitoring_role_arn                   = (known after apply)
+      + multi_az                              = false
+      + nchar_character_set_name              = (known after apply)
+      + network_type                          = (known after apply)
+      + option_group_name                     = (known after apply)
+      + parameter_group_name                  = "default.mysql8.0"
+      + password                              = (sensitive value)
+      + password_wo                           = (write-only attribute)
+      + performance_insights_enabled          = false
+      + performance_insights_kms_key_id       = (known after apply)
+      + performance_insights_retention_period = (known after apply)
+      + port                                  = 3306
+      + publicly_accessible                   = false
+      + replica_mode                          = (known after apply)
+      + replicas                              = (known after apply)
+      + resource_id                           = (known after apply)
+      + skip_final_snapshot                   = true
+      + snapshot_identifier                   = (known after apply)
+      + status                                = (known after apply)
+      + storage_encrypted                     = true
+      + storage_throughput                    = (known after apply)
+      + storage_type                          = "gp2"
+      + tags                                  = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-mysql"
+        }
+      + tags_all                              = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-mysql"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + timezone                              = (known after apply)
+      + username                              = (sensitive value)
+      + vpc_security_group_ids                = (known after apply)
+    }
+
+  # aws_db_subnet_group.mysql will be created
+  + resource "aws_db_subnet_group" "mysql" {
+      + arn                     = (known after apply)
+      + description             = "Subnet group for RDS MySQL in private subnets"
+      + id                      = (known after apply)
+      + name                    = "ec2-rds-notes-lab-db-subnet-group"
+      + name_prefix             = (known after apply)
+      + subnet_ids              = (known after apply)
+      + supported_network_types = (known after apply)
+      + tags                    = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-db-subnet-group"
+        }
+      + tags_all                = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-db-subnet-group"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id                  = (known after apply)
+    }
+
+  # aws_iam_instance_profile.ec2 will be created
+  + resource "aws_iam_instance_profile" "ec2" {
+      + arn         = (known after apply)
+      + create_date = (known after apply)
+      + id          = (known after apply)
+      + name        = "ec2-rds-notes-lab-ec2-profile"
+      + name_prefix = (known after apply)
+      + path        = "/"
+      + role        = "ec2-rds-notes-lab-ec2-role"
+      + tags        = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-ec2-profile"
+        }
+      + tags_all    = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-ec2-profile"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + unique_id   = (known after apply)
+    }
+
+  # aws_iam_policy.secrets_access will be created
+  + resource "aws_iam_policy" "secrets_access" {
+      + arn              = (known after apply)
+      + attachment_count = (known after apply)
+      + description      = "Allow EC2 to read database credentials from Secrets Manager"
+      + id               = (known after apply)
+      + name             = "ec2-rds-notes-lab-secrets-access"
+      + name_prefix      = (known after apply)
+      + path             = "/"
+      + policy           = (known after apply)
+      + policy_id        = (known after apply)
+      + tags             = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-secrets-access"
+        }
+      + tags_all         = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-secrets-access"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+    }
+
+  # aws_iam_role.ec2 will be created
+  + resource "aws_iam_role" "ec2" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "ec2.amazonaws.com"
+                        }
+                      + Sid       = "EC2AssumeRole"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + description           = "IAM role for EC2 instances to access Secrets Manager"
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "ec2-rds-notes-lab-ec2-role"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-ec2-role"
+        }
+      + tags_all              = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-ec2-role"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # aws_iam_role_policy_attachment.secrets_access will be created
+  + resource "aws_iam_role_policy_attachment" "secrets_access" {
+      + id         = (known after apply)
+      + policy_arn = (known after apply)
+      + role       = "ec2-rds-notes-lab-ec2-role"
+    }
+
+  # aws_instance.web will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-068c0051b15cdb816"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + disable_api_stop                     = (known after apply)
+      + disable_api_termination              = (known after apply)
+      + ebs_optimized                        = (known after apply)
+      + enable_primary_ipv6                  = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + host_resource_group_arn              = (known after apply)
+      + iam_instance_profile                 = "ec2-rds-notes-lab-ec2-profile"
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_lifecycle                   = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t3.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = (known after apply)
+      + monitoring                           = false
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + placement_partition_number           = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + spot_instance_request_id             = (known after apply)
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-web"
+        }
+      + tags_all                             = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-web"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + tenancy                              = (known after apply)
+      + user_data                            = "d0d71d82e722dc8cb34815af5b963ad1d82c379e"
+      + user_data_base64                     = (known after apply)
+      + user_data_replace_on_change          = false
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + cpu_options (known after apply)
+
+      + ebs_block_device (known after apply)
+
+      + enclave_options (known after apply)
+
+      + ephemeral_block_device (known after apply)
+
+      + instance_market_options (known after apply)
+
+      + maintenance_options (known after apply)
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_protocol_ipv6          = "disabled"
+          + http_put_response_hop_limit = 1
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = (known after apply)
+        }
+
+      + network_interface (known after apply)
+
+      + private_dns_name_options (known after apply)
+
+      + root_block_device {
+          + delete_on_termination = true
+          + device_name           = (known after apply)
+          + encrypted             = true
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags_all              = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = 8
+          + volume_type           = "gp3"
+        }
+    }
+
+  # aws_internet_gateway.main will be created
+  + resource "aws_internet_gateway" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + owner_id = (known after apply)
+      + tags     = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-igw"
+        }
+      + tags_all = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-igw"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id   = (known after apply)
+    }
+
+  # aws_route.public_internet will be created
+  + resource "aws_route" "public_internet" {
+      + destination_cidr_block = "0.0.0.0/0"
+      + gateway_id             = (known after apply)
+      + id                     = (known after apply)
+      + instance_id            = (known after apply)
+      + instance_owner_id      = (known after apply)
+      + network_interface_id   = (known after apply)
+      + origin                 = (known after apply)
+      + route_table_id         = (known after apply)
+      + state                  = (known after apply)
+    }
+
+  # aws_route_table.private will be created
+  + resource "aws_route_table" "private" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = (known after apply)
+      + tags             = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-private-rt"
+        }
+      + tags_all         = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-private-rt"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table.public will be created
+  + resource "aws_route_table" "public" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + route            = (known after apply)
+      + tags             = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-public-rt"
+        }
+      + tags_all         = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-public-rt"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # aws_route_table_association.private[0] will be created
+  + resource "aws_route_table_association" "private" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.private[1] will be created
+  + resource "aws_route_table_association" "private" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # aws_secretsmanager_secret.db_credentials will be created
+  + resource "aws_secretsmanager_secret" "db_credentials" {
+      + arn                            = (known after apply)
+      + description                    = "Database credentials for ec2-rds-notes-lab RDS MySQL"
+      + force_overwrite_replica_secret = false
+      + id                             = (known after apply)
+      + name                           = "lab/rds/mysql"
+      + name_prefix                    = (known after apply)
+      + policy                         = (known after apply)
+      + recovery_window_in_days        = 0
+      + tags                           = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-db-secret"
+        }
+      + tags_all                       = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-db-secret"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+
+      + replica (known after apply)
+    }
+
+  # aws_secretsmanager_secret_version.db_credentials will be created
+  + resource "aws_secretsmanager_secret_version" "db_credentials" {
+      + arn                  = (known after apply)
+      + has_secret_string_wo = (known after apply)
+      + id                   = (known after apply)
+      + secret_id            = (known after apply)
+      + secret_string        = (sensitive value)
+      + secret_string_wo     = (write-only attribute)
+      + version_id           = (known after apply)
+      + version_stages       = (known after apply)
+    }
+
+  # aws_security_group.ec2 will be created
+  + resource "aws_security_group" "ec2" {
+      + arn                    = (known after apply)
+      + description            = "Security group for EC2 web application instance"
+      + egress                 = (known after apply)
+      + id                     = (known after apply)
+      + ingress                = (known after apply)
+      + name                   = "ec2-rds-notes-lab-ec2-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-ec2-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-ec2-sg"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_security_group.rds will be created
+  + resource "aws_security_group" "rds" {
+      + arn                    = (known after apply)
+      + description            = "Security group for RDS MySQL - allows access only from EC2 SG"
+      + egress                 = (known after apply)
+      + id                     = (known after apply)
+      + ingress                = (known after apply)
+      + name                   = "ec2-rds-notes-lab-rds-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-rds-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-rds-sg"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # aws_subnet.private[0] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.100.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-private-us-east-1a"
+          + "Tier" = "private"
+        }
+      + tags_all                                       = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-private-us-east-1a"
+          + "Project"     = "ec2-rds-notes-lab"
+          + "Tier"        = "private"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.private[1] will be created
+  + resource "aws_subnet" "private" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.101.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-private-us-east-1b"
+          + "Tier" = "private"
+        }
+      + tags_all                                       = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-private-us-east-1b"
+          + "Project"     = "ec2-rds-notes-lab"
+          + "Tier"        = "private"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.0.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-public-us-east-1a"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-public-us-east-1a"
+          + "Project"     = "ec2-rds-notes-lab"
+          + "Tier"        = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.0.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags                                           = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-public-us-east-1b"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-public-us-east-1b"
+          + "Project"     = "ec2-rds-notes-lab"
+          + "Tier"        = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # aws_vpc.main will be created
+  + resource "aws_vpc" "main" {
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.0.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + enable_network_address_usage_metrics = (known after apply)
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + tags                                 = {
+          + "Lab"  = "EC2-RDS-Notes"
+          + "Name" = "ec2-rds-notes-lab-vpc"
+        }
+      + tags_all                             = {
+          + "Environment" = "lab"
+          + "Lab"         = "EC2-RDS-Notes"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-vpc"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+    }
+
+  # aws_vpc_security_group_egress_rule.ec2_all_outbound will be created
+  + resource "aws_vpc_security_group_egress_rule" "ec2_all_outbound" {
+      + arn                    = (known after apply)
+      + cidr_ipv4              = "0.0.0.0/0"
+      + description            = "All outbound traffic"
+      + id                     = (known after apply)
+      + ip_protocol            = "-1"
+      + security_group_id      = (known after apply)
+      + security_group_rule_id = (known after apply)
+      + tags                   = {
+          + "Name" = "ec2-rds-notes-lab-ec2-outbound"
+        }
+      + tags_all               = {
+          + "Environment" = "lab"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-ec2-outbound"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+    }
+
+  # aws_vpc_security_group_ingress_rule.ec2_http["0.0.0.0/0"] will be created
+  + resource "aws_vpc_security_group_ingress_rule" "ec2_http" {
+      + arn                    = (known after apply)
+      + cidr_ipv4              = "0.0.0.0/0"
+      + description            = "HTTP from 0.0.0.0/0"
+      + from_port              = 80
+      + id                     = (known after apply)
+      + ip_protocol            = "tcp"
+      + security_group_id      = (known after apply)
+      + security_group_rule_id = (known after apply)
+      + tags                   = {
+          + "Name" = "ec2-rds-notes-lab-ec2-http-0.0.0.0-0"
+        }
+      + tags_all               = {
+          + "Environment" = "lab"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-ec2-http-0.0.0.0-0"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + to_port                = 80
+    }
+
+  # aws_vpc_security_group_ingress_rule.rds_mysql_from_ec2 will be created
+  + resource "aws_vpc_security_group_ingress_rule" "rds_mysql_from_ec2" {
+      + arn                          = (known after apply)
+      + description                  = "MySQL from EC2 security group"
+      + from_port                    = 3306
+      + id                           = (known after apply)
+      + ip_protocol                  = "tcp"
+      + referenced_security_group_id = (known after apply)
+      + security_group_id            = (known after apply)
+      + security_group_rule_id       = (known after apply)
+      + tags                         = {
+          + "Name" = "ec2-rds-notes-lab-rds-mysql-from-ec2"
+        }
+      + tags_all                     = {
+          + "Environment" = "lab"
+          + "ManagedBy"   = "terraform"
+          + "Name"        = "ec2-rds-notes-lab-rds-mysql-from-ec2"
+          + "Project"     = "ec2-rds-notes-lab"
+        }
+      + to_port                      = 3306
+    }
+
+  # random_password.db_password will be created
+  + resource "random_password" "db_password" {
+      + bcrypt_hash      = (sensitive value)
+      + id               = (known after apply)
+      + length           = 24
+      + lower            = true
+      + min_lower        = 0
+      + min_numeric      = 0
+      + min_special      = 0
+      + min_upper        = 0
+      + number           = true
+      + numeric          = true
+      + override_special = "!#$%&*()-_=+[]{}<>:?"
+      + result           = (sensitive value)
+      + special          = true
+      + upper            = true
+    }
+
+Plan: 28 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + app_endpoints             = {
+      + add  = (known after apply)
+      + init = (known after apply)
+      + list = (known after apply)
+    }
+  + app_url                   = (known after apply)
+  + ec2_iam_role_arn          = (known after apply)
+  + ec2_instance_id           = (known after apply)
+  + ec2_instance_profile_name = "ec2-rds-notes-lab-ec2-profile"
+  + ec2_public_dns            = (known after apply)
+  + ec2_public_ip             = (known after apply)
+  + ec2_security_group_id     = (known after apply)
+  + private_subnet_ids        = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + public_subnet_ids         = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + rds_address               = (known after apply)
+  + rds_endpoint              = (known after apply)
+  + rds_identifier            = "ec2-rds-notes-lab-mysql"
+  + rds_port                  = 3306
+  + rds_security_group_id     = (known after apply)
+  + secret_arn                = (known after apply)
+  + secret_name               = "lab/rds/mysql"
+  + verification_commands     = {
+      + check_instance        = (known after apply)
+      + check_rds             = "aws rds describe-db-instances --db-instance-identifier ec2-rds-notes-lab-mysql --query 'DBInstances[].{Status:DBInstanceStatus,Endpoint:Endpoint}'"
+      + check_rds_sg          = (known after apply)
+      + check_secret_from_ec2 = "aws secretsmanager get-secret-value --secret-id lab/rds/mysql --region us-east-1"
+    }
+  + vpc_id                    = (known after apply)
+

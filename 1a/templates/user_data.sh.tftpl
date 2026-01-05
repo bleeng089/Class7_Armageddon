@@ -1,0 +1,291 @@
+#!/bin/bash
+# user_data.sh.tftpl - EC2 bootstrap script for Flask Notes App
+# This script installs dependencies, fetches DB credentials from Secrets Manager,
+# and runs a minimal Flask app with /init, /add, /list endpoints.
+
+set -euo pipefail
+
+# Variables passed from Terraform
+AWS_REGION="${aws_region}"
+SECRET_NAME="${secret_name}"
+
+# Logging configuration
+LOG_FILE="/var/log/notes-app.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Notes App setup..."
+
+# Update system and install dependencies
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Installing system packages..."
+dnf update -y
+dnf install -y python3 python3-pip
+
+# Verify Python installation
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Verifying Python..."
+python3 --version
+pip3 --version
+
+# Install Python packages
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Installing Python packages..."
+pip3 install flask pymysql
+
+# Verify Flask installation
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Verifying Flask and pymysql..."
+python3 -c "import flask; print('Flask version:', flask.__version__)"
+python3 -c "import pymysql; print('pymysql imported successfully')"
+
+# Create application directory
+APP_DIR="/opt/notes-app"
+mkdir -p "$APP_DIR"
+
+# Create the Flask application
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Creating Flask application..."
+cat > "$APP_DIR/app.py" << 'FLASK_APP'
+#!/usr/bin/env python3
+"""
+Notes App - Minimal Flask application for EC2->RDS lab
+Endpoints:
+  GET /init      - Create notes table
+  GET /add?note= - Add a note
+  GET /list      - List all notes
+  GET /health    - Health check
+"""
+
+import json
+import logging
+import subprocess
+import sys
+from flask import Flask, request, jsonify
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/var/log/notes-app.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+
+# Global connection config - populated from Secrets Manager
+DB_CONFIG = None
+
+
+def get_db_credentials():
+    """Fetch database credentials from AWS Secrets Manager using AWS CLI."""
+    global DB_CONFIG
+    if DB_CONFIG is not None:
+        return DB_CONFIG
+
+    import os
+    region = os.environ.get('AWS_REGION', 'us-east-1')
+    secret_name = os.environ.get('SECRET_NAME', 'lab/rds/mysql')
+
+    logger.info(f"Fetching secret '{secret_name}' from region '{region}'...")
+
+    try:
+        result = subprocess.run(
+            [
+                'aws', 'secretsmanager', 'get-secret-value',
+                '--secret-id', secret_name,
+                '--region', region,
+                '--query', 'SecretString',
+                '--output', 'text'
+            ],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        DB_CONFIG = json.loads(result.stdout.strip())
+        logger.info(f"Successfully retrieved credentials for host: {DB_CONFIG.get('host', 'unknown')}")
+        return DB_CONFIG
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to get secret: {e.stderr}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse secret JSON: {e}")
+        raise
+
+
+def get_db_connection():
+    """Create a new database connection."""
+    import pymysql
+    creds = get_db_credentials()
+    return pymysql.connect(
+        host=creds['host'],
+        port=int(creds['port']),
+        user=creds['username'],
+        password=creds['password'],
+        database=creds['dbname'],
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+
+@app.route('/health')
+def health():
+    """Health check endpoint."""
+    return jsonify({'status': 'healthy'}), 200
+
+
+@app.route('/init')
+def init_db():
+    """Initialize the notes table."""
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS notes (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """)
+        conn.commit()
+        conn.close()
+        logger.info("Database table 'notes' initialized successfully")
+        return jsonify({
+            'status': 'success',
+            'message': 'Notes table created/verified successfully'
+        }), 200
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/add')
+def add_note():
+    """Add a new note. Usage: /add?note=your_note_here"""
+    note = request.args.get('note', '').strip()
+    if not note:
+        return jsonify({
+            'status': 'error',
+            'message': 'Missing "note" query parameter. Usage: /add?note=your_note'
+        }), 400
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO notes (content) VALUES (%s)", (note,))
+        conn.commit()
+        note_id = cursor.lastrowid
+        conn.close()
+        logger.info(f"Added note ID {note_id}: {note[:50]}...")
+        return jsonify({
+            'status': 'success',
+            'message': f'Note added with ID {note_id}',
+            'note_id': note_id
+        }), 201
+    except Exception as e:
+        logger.error(f"Failed to add note: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/list')
+def list_notes():
+    """List all notes."""
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, content, created_at FROM notes ORDER BY created_at DESC")
+            notes = cursor.fetchall()
+        conn.close()
+
+        # Convert datetime to string for JSON serialization
+        for note in notes:
+            note['created_at'] = str(note['created_at'])
+
+        logger.info(f"Listed {len(notes)} notes")
+        return jsonify({
+            'status': 'success',
+            'count': len(notes),
+            'notes': notes
+        }), 200
+    except Exception as e:
+        logger.error(f"Failed to list notes: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/')
+def index():
+    """Root endpoint with usage instructions."""
+    return jsonify({
+        'app': 'Notes App',
+        'endpoints': {
+            '/init': 'Initialize the notes table',
+            '/add?note=TEXT': 'Add a new note',
+            '/list': 'List all notes',
+            '/health': 'Health check'
+        }
+    }), 200
+
+
+if __name__ == '__main__':
+    # Run on port 80 (requires root)
+    app.run(host='0.0.0.0', port=80, debug=False)
+FLASK_APP
+
+chmod +x "$APP_DIR/app.py"
+
+# Create systemd service file
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Creating systemd service..."
+cat > /etc/systemd/system/notes-app.service << EOF
+[Unit]
+Description=Notes Flask Application
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=$APP_DIR
+Environment="AWS_REGION=$AWS_REGION"
+Environment="SECRET_NAME=$SECRET_NAME"
+ExecStart=/usr/bin/python3 $APP_DIR/app.py
+Restart=always
+RestartSec=5
+StandardOutput=append:$LOG_FILE
+StandardError=append:$LOG_FILE
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd and start service
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Notes App service..."
+systemctl daemon-reload
+systemctl enable notes-app
+systemctl start notes-app
+
+# Wait for service to start
+sleep 10
+
+# Check service status
+if systemctl is-active --quiet notes-app; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Notes App service started successfully!"
+
+    # Verify port 80 is listening
+    sleep 2
+    if ss -lntp | grep -q ':80'; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Port 80 is listening!"
+    else
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - WARNING: Port 80 not listening yet"
+        ss -lntp || true
+    fi
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Notes App service failed to start!"
+    systemctl status notes-app --no-pager || true
+    journalctl -u notes-app -n 50 --no-pager || true
+fi
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Setup complete!"
