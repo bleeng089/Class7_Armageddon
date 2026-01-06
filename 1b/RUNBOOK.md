@@ -1308,16 +1308,30 @@ This section provides controlled procedures to deliberately trigger each of the 
      --master-user-password "$NEW_PASS" \
      --apply-immediately
 
-   # Wait for modification to complete
+   # Wait for modification to complete (poll until PendingModifiedValues is empty)
    echo "Waiting for RDS password change to apply..."
-   sleep 120
+   while true; do
+     PENDING=$(aws rds describe-db-instances \
+       --db-instance-identifier ec2-rds-notes-lab-mysql \
+       --query 'DBInstances[0].PendingModifiedValues' \
+       --output json)
 
+     if [ -z "$PENDING" ]; then
+       echo "Password modification complete!"
+       break
+     fi
+
+     echo "$(date '+%H:%M:%S') - Modification still pending..."
+     sleep 30
+   done
+
+   # Verify RDS is available
    aws rds describe-db-instances \
      --db-instance-identifier ec2-rds-notes-lab-mysql \
      --query 'DBInstances[0].DBInstanceStatus' \
      --output text
    ```
-   **Expected:** RDS status returns to `available` after ~2 minutes
+   **Expected:** Polling completes when `PendingModifiedValues` is empty (typically 2-4 minutes)
 
 3. **Trigger application errors**
    ```bash
@@ -1649,7 +1663,14 @@ aws rds modify-db-instance \
   --db-instance-identifier ec2-rds-notes-lab-mysql \
   --master-user-password "$NEW_PASS" \
   --apply-immediately
-sleep 120
+
+echo "Waiting for password change to apply..."
+while true; do
+  PENDING=$(aws rds describe-db-instances --db-instance-identifier ec2-rds-notes-lab-mysql --query 'DBInstances[0].PendingModifiedValues' --output json)
+  [ -z "$PENDING" ] && break
+  sleep 30
+done
+echo "Password change complete!"
 
 echo "Triggering errors..."
 for i in {1..5}; do curl -s http://$EC2_IP/list; sleep 10; done
@@ -1660,7 +1681,14 @@ aws rds modify-db-instance \
   --db-instance-identifier ec2-rds-notes-lab-mysql \
   --master-user-password "$SM_PASS" \
   --apply-immediately
-sleep 120
+
+echo "Waiting for password recovery to apply..."
+while true; do
+  PENDING=$(aws rds describe-db-instances --db-instance-identifier ec2-rds-notes-lab-mysql --query 'DBInstances[0].PendingModifiedValues' --output json)
+  [ -z "$PENDING" ] && break
+  sleep 30
+done
+echo "Password recovery complete!"
 
 curl http://$EC2_IP/list
 echo "✓ Test 1 Complete"
